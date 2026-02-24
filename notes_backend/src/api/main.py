@@ -25,9 +25,22 @@ app = FastAPI(
 )
 
 # CORS configuration:
-# Prefer explicit env vars if present (set by platform/orchestrator), but keep safe defaults.
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*")
-allow_origins = [o.strip() for o in allowed_origins.split(",")] if allowed_origins != "*" else ["*"]
+# Prefer explicit env vars if present (set by platform/orchestrator).
+# Otherwise, default to allowing the local dev origin + the preview host pattern.
+#
+# IMPORTANT: When allow_credentials=True, allow_origins cannot be ["*"] in browsers.
+# We therefore keep defaults explicit and configurable.
+allowed_origins = os.getenv("ALLOWED_ORIGINS")
+if allowed_origins:
+    allow_origins = [o.strip() for o in allowed_origins.split(",") if o.strip()]
+else:
+    # Default preview + dev origins
+    allow_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        # Kavia preview frontend origin (current workspace)
+        "https://vscode-internal-28946-beta.beta01.cloud.kavia.ai:3000",
+    ]
 
 allowed_headers = os.getenv("ALLOWED_HEADERS", "*")
 allow_headers = [h.strip() for h in allowed_headers.split(",")] if allowed_headers != "*" else ["*"]
